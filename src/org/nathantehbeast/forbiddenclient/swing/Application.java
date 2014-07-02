@@ -17,7 +17,8 @@ public class Application extends JFrame {
     protected Image icon;
     protected JTabbedPane tabbedPane;
     protected JPanel statusPanel;
-    protected JLabel statusLabel;
+    protected JLabel statusLabel, pointsLabel;
+    protected int points = 0;
 
     private LoginPanel loginPanel;
     private ManagementPanel managementPanel;
@@ -46,10 +47,14 @@ public class Application extends JFrame {
         statusPanel = new JPanel();
         statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
         statusPanel.setPreferredSize(new Dimension(getWidth(), 20));
-        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
+        statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.LINE_AXIS));
 
         statusLabel = new JLabel("Not logged in.");
+        pointsLabel = new JLabel("Current Points: " + points);
+
         statusPanel.add(statusLabel);
+        statusPanel.add(Box.createHorizontalGlue());
+        statusPanel.add(pointsLabel);
 
         getContentPane().add(tabbedPane, BorderLayout.CENTER);
         getContentPane().add(getStatusPanel(), BorderLayout.SOUTH);
@@ -90,6 +95,15 @@ public class Application extends JFrame {
 
     public void setStatus(String status) {
         statusLabel.setText(status);
+    }
+
+    public void setPoints(int i) {
+        this.points = i;
+        pointsLabel.setText("Current Points: " + points);
+    }
+
+    public int getPoints() {
+        return points;
     }
 
 }

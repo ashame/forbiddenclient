@@ -3,8 +3,6 @@ package org.nathantehbeast.forbiddenclient.swing;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.security.MessageDigest;
 import java.sql.*;
 
@@ -16,6 +14,10 @@ import java.sql.*;
 
 public class LoginPanel extends JPanel {
 
+    protected final String DB_URL = "";
+    protected final String DB_USR = "";
+    protected final String DB_PWD = "";
+
     private final Application application;
     private final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
@@ -23,8 +25,8 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwordField;
     private JButton loginButton;
 
-    private String name, passhash, secret;
-    private int groupId;
+    private String name, passhash, salt, igns;
+    private int memberId, groupId, points;
 
     public LoginPanel(Application application) {
         this.application = application;
@@ -93,8 +95,10 @@ public class LoginPanel extends JPanel {
     private void processLogin() {
         disableAll();
         if (login(usernameField.getText(), new String(passwordField.getPassword()))) {
-            application.setUser(name);
+            fetchData();
+            application.setUser(igns);
             application.setStatus("Welcome " + application.getUser() + "!");
+            application.setPoints(points);
             application.getTabbedPane().addTab("Overview", application.getOverviewPanel());
             if (groupId == 4 || groupId == 6 || groupId == 8)  {
                 application.getTabbedPane().addTab("Management Tools", application.getManagementPanel());
@@ -114,12 +118,12 @@ public class LoginPanel extends JPanel {
         try {
             Class.forName("com.mysql.jdbc.Driver");
 
-            con = DriverManager.getConnection("", "", "");
+            con = DriverManager.getConnection(DB_URL, DB_USR, DB_PWD);
 
             statement = con.createStatement();
 
             PreparedStatement ps;
-            ps = con.prepareStatement("SELECT name, member_group_id, members_pass_hash, members_pass_salt FROM ipb.ipb_members WHERE name = ? OR email = ?");
+            ps = con.prepareStatement("SELECT member_id, name, member_group_id, members_pass_hash, members_pass_salt FROM ipb_members WHERE name = ? OR email = ?");
 
             ps.setString(1, user);
             ps.setString(2, user);
@@ -127,13 +131,15 @@ public class LoginPanel extends JPanel {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
+                memberId = rs.getInt("member_id");
                 name = rs.getString("name");
                 groupId = rs.getInt("member_group_id");
                 passhash = rs.getString("members_pass_hash");
-                secret = rs.getString("members_pass_salt");
+                salt = rs.getString("members_pass_salt");
             }
 
             rs.close();
+            ps.close();
             statement.close();
             con.close();
 
@@ -141,7 +147,38 @@ public class LoginPanel extends JPanel {
             e.printStackTrace();
             return false;
         }
-        return secret != null && passhash != null && pwd != null && checkHash(secret, passhash, pwd);
+        return salt != null && passhash != null && pwd != null && checkHash(salt, passhash, pwd);
+    }
+
+    private void fetchData() {
+        Connection con;
+        Statement statement;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+
+            con = DriverManager.getConnection(DB_URL, DB_USR, DB_PWD);
+
+            statement = con.createStatement();
+
+            PreparedStatement ps;
+            ps = con.prepareStatement("SELECT ipb_members.member_id, ipb_members.name, ipb_pfields_content.field_11, ipb_pfields_content.field_12 FROM ipb_members, ipb_pfields_content WHERE ipb_members.member_id = ipb_pfields_content.member_id AND ipb_members.member_id = ?");
+
+            ps.setInt(1, memberId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                igns = rs.getString("field_11");
+                points = rs.getInt("field_12");
+            }
+
+            rs.close();
+            ps.close();
+            statement.close();
+            con.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean checkHash(String salt, String hash, String pwd) {
