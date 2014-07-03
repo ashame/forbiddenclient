@@ -17,19 +17,18 @@ public class Application extends JFrame {
     protected final String[] titleMessages = new String[] {"Used condoms for sale", "Buttering the corn",
             "I honestly don't know what to put here", "Dirty stories about corn", "Wibble wobble", "Might as well put cornflakes in there",
             "Corn bread as well", "#RuwenBrokeAV2014", "One day, I shall finish my guide", "Cardboard boxes for sale", "Home of Drillar noob",
-            "Loli VR FPS", "Invite Ori to PvE things and he will GvG you"};
+            "Loli VR FPS", "Invite Ori to PvE things and he will GvG you", "I cut you", "Bite my shiny metal ass", "Parting the Red Sea",
+            "insert title here", "Cyndy is fat"};
 
     protected final String DB_URL = "";
     protected final String DB_USR = "";
     protected final String DB_PWD = "";
 
-    protected Image icon;
-    protected JTabbedPane tabbedPane;
-    protected JPanel statusPanel;
-    protected JLabel statusLabel, pointsLabel;
-    protected int points = 0;
+    private JTabbedPane tabbedPane;
+    private JPanel statusPanel;
+    private JLabel statusLabel, pointsLabel;
+    private int points = 0;
 
-    private LoginPanel loginPanel;
     private ManagementPanel managementPanel;
     private OverviewPanel overviewPanel;
 
@@ -37,20 +36,27 @@ public class Application extends JFrame {
 
     public Application() {
         super();
+
+        AppMenuBar appMenuBar = new AppMenuBar(this);
+        LoginPanel loginPanel = new LoginPanel(this);
+        managementPanel = new ManagementPanel();
+        overviewPanel = new OverviewPanel(this);
+
         int msg = new Random().nextInt(titleMessages.length);
+
         setTitle("Forbidden - " + titleMessages[msg]);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        icon = Utilities.getImage(Utilities.getContentDirectory() + "images/icon.png");
+
+        Image icon = Utilities.getImage(Utilities.getContentDirectory() + "images/icon.png");
         setIconImage(icon);
 
         tabbedPane = new JTabbedPane();
-        loginPanel = new LoginPanel(this);
-        managementPanel = new ManagementPanel(this);
-        overviewPanel = new OverviewPanel(this);
 
         tabbedPane.addTab("Login", loginPanel);
         tabbedPane.addTab("Overview", overviewPanel);
+
+        tabbedPane.setSelectedIndex(1);
 
         statusPanel = new JPanel();
         statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
@@ -64,6 +70,8 @@ public class Application extends JFrame {
         statusPanel.add(Box.createHorizontalGlue());
         statusPanel.add(pointsLabel);
 
+        setJMenuBar(appMenuBar);
+
         getContentPane().add(tabbedPane, BorderLayout.CENTER);
         getContentPane().add(getStatusPanel(), BorderLayout.SOUTH);
 
@@ -71,10 +79,6 @@ public class Application extends JFrame {
         getContentPane().revalidate();
         setResizable(false);
         pack();
-    }
-
-    public LoginPanel getLoginPanel() {
-        return loginPanel;
     }
 
     public ManagementPanel getManagementPanel() {
@@ -108,6 +112,11 @@ public class Application extends JFrame {
     public void setPoints(int i) {
         this.points = i;
         pointsLabel.setText("Points: " + points);
+    }
+
+    public void randomizeTitle() {
+        int msg = new Random().nextInt(titleMessages.length);
+        setTitle("Forbidden - " + titleMessages[msg]);
     }
 
 }

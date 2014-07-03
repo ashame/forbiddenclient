@@ -5,6 +5,7 @@ import org.nathantehbeast.forbiddenclient.utils.Utilities;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -32,7 +33,7 @@ public class OverviewPanel extends JPanel {
         leftPanel.setBorder(new TitledBorder("Points Overview"));
 
         rightPanel = new JPanel(new GridLayout(2, 1));
-        rightPanel.setBorder(new TitledBorder("Others"));
+        rightPanel.setBorder(new TitledBorder("Coming Soon™"));
 
         rightTopPanel = new JPanel();
         rightTopPanel.setBorder(new TitledBorder(""));
@@ -43,18 +44,32 @@ public class OverviewPanel extends JPanel {
         rightPanel.add(rightTopPanel);
         rightPanel.add(rightBottomPannel);
 
-        table1 = new JTable(){
+        table1 = new JTable() {
             public boolean isCellEditable(int row, int column) {
                 return false;
-            };
+            }
+
+            @Override
+            public String getToolTipText(MouseEvent e) {
+                String tooltip = null;
+                java.awt.Point p = e.getPoint();
+                int rowIndex = rowAtPoint(p);
+                int colIndex = columnAtPoint(p);
+
+                try {
+                    if (getColumnName(colIndex).equalsIgnoreCase("field_11"))
+                        tooltip = getValueAt(rowIndex, colIndex).toString();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                return tooltip;
+            }
         };
 
-        scrollPane = new JScrollPane();
-
-        refreshTable();
-
+        refreshData();
         table1.setAutoCreateRowSorter(true);
 
+        scrollPane = new JScrollPane();
         scrollPane.setViewportView(table1);
 
         leftPanel.add(scrollPane, BorderLayout.CENTER);
@@ -63,7 +78,7 @@ public class OverviewPanel extends JPanel {
         add(rightPanel);
     }
 
-    private void refreshTable() {
+    protected void refreshData() {
         Connection con;
         Statement stmt;
         try {
@@ -76,17 +91,20 @@ public class OverviewPanel extends JPanel {
             ResultSet rs = stmt.executeQuery(query);
 
             table1.setModel(Utilities.resultSetToTableModel(rs));
+
+            table1.getColumnModel().getColumn(0).setHeaderValue("Name");
+            table1.getColumnModel().getColumn(0).setResizable(false);
+
+            table1.getColumnModel().getColumn(1).setHeaderValue("Points");
+            table1.getColumnModel().getColumn(1).setResizable(false);
+            table1.getColumnModel().getColumn(1).setMaxWidth(53);
+            table1.getColumnModel().getColumn(1).setMinWidth(53);
+
+            con.close();
+            stmt.close();
+            rs.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        table1.getColumnModel().getColumn(0).setHeaderValue("Name");
-        table1.getColumnModel().getColumn(0).setResizable(false);
-
-        table1.getColumnModel().getColumn(1).setHeaderValue("Points");
-        table1.getColumnModel().getColumn(1).setResizable(false);
-        table1.getColumnModel().getColumn(1).setMaxWidth(53);
-        table1.getColumnModel().getColumn(1).setMinWidth(53);
     }
-
 }

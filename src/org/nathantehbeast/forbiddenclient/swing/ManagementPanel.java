@@ -10,9 +10,7 @@ import javax.swing.*;
 
 public class ManagementPanel extends JPanel {
 
-    private final Application application;
+    public ManagementPanel() {
 
-    public ManagementPanel(Application application) {
-        this.application = application;
     }
 }

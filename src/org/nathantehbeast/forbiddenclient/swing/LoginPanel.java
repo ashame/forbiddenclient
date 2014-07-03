@@ -29,7 +29,7 @@ public class LoginPanel extends JPanel {
         this.application = application;
 
         setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(150, 150, 175, 150));
+        setBorder(BorderFactory.createEmptyBorder(135, 150, 190, 150));
 
         JPanel nested0 = new JPanel(new GridLayout(3, 1, 50, 5));
         JPanel nested_username = new JPanel(new GridLayout());
@@ -108,7 +108,9 @@ public class LoginPanel extends JPanel {
                 loggedIn = true;
             } else {
                 JOptionPane.showMessageDialog(null, "Invalid login. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                passwordField.setText("");
                 enableAll();
+                passwordField.requestFocus();
             }
         });
     }
@@ -155,6 +157,9 @@ public class LoginPanel extends JPanel {
                     application.getTabbedPane().remove(c);
             }
 
+            usernameField.setText("");
+            passwordField.setText("");
+
             application.setStatus("Not logged in.");
             application.setPoints(0);
             loginButton.setText("Login!");
@@ -192,7 +197,6 @@ public class LoginPanel extends JPanel {
     }
 
     private boolean checkHash(String salt, String hash, String pwd) {
-        System.out.println("Checking hash. Running on event dispatch thread: " + SwingUtilities.isEventDispatchThread());
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.update(salt.getBytes("UTF-8"), 0, salt.length());
