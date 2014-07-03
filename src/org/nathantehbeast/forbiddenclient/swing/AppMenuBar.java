@@ -46,7 +46,7 @@ public class AppMenuBar extends JMenuBar {
         menuItem = new JMenuItem("About");
         menuItem.addActionListener(l -> {
             JOptionPane.showMessageDialog(null, "<html> <b>Forbidden Client © 2014 Nathan Liu</b><br><br>Github: <a href='http://github.com/nathantehbeast/forbiddenclient'>http://github" +
-                    ".com/forbiddenclient</a><br>E-mail: <a href='mailto:maplechaos@gmail.com'>maplechaos@gmail.com</a></html>", "About", JOptionPane.INFORMATION_MESSAGE);
+                    ".com/forbiddenclient</a><br>E-mail: <a href='mailto:maplechaos@gmail.com'>maplechaos@gmail.com</a><br><br><small><b>Version " + application.VERSION + "</b></small></html>", "About", JOptionPane.INFORMATION_MESSAGE);
         });
         menu.add(menuItem);
 
