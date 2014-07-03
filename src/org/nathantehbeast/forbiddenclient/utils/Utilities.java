@@ -1,5 +1,10 @@
 package org.nathantehbeast.forbiddenclient.utils;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,6 +13,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.util.Vector;
 
 /**
  * Created by Nathan on 7/2/14.
@@ -57,4 +65,45 @@ public class Utilities {
         return Toolkit.getDefaultToolkit().createImage(file);
     }
 
+    public static TableModel resultSetToTableModel(ResultSet rs) {
+        try {
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columns = metaData.getColumnCount();
+            Vector<String> columnNames = new Vector<>();
+
+            for (int i = 0; i < columns; i++) {
+               columnNames.addElement(metaData.getColumnLabel(i + 1));
+            }
+
+            Vector<Vector<Object>> rows = new Vector<>();
+
+            while (rs.next()) {
+                Vector<Object> newRow = new Vector<>();
+
+                for (int i = 1; i <= columns; i++) {
+                    newRow.addElement(rs.getObject(i));
+                }
+
+                rows.add(newRow);
+            }
+
+            return new DefaultTableModel(rows, columnNames);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void resizeColumnWidth(JTable table) {
+        final TableColumnModel columnModel = table.getColumnModel();
+        for (int column = 0; column < table.getColumnCount(); column++) {
+            int width = 50; // Min width
+            for (int row = 0; row < table.getRowCount(); row++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, column);
+                Component comp = table.prepareRenderer(renderer, row, column);
+                width = Math.max(comp.getPreferredSize().width, width);
+            }
+            columnModel.getColumn(column).setPreferredWidth(width);
+        }
+    }
 }

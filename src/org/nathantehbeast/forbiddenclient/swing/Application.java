@@ -14,6 +14,14 @@ import java.util.Random;
  */
 public class Application extends JFrame {
 
+    protected final String[] titleMessages = new String[] {"Used condoms for sale", "Buttering the corn",
+            "I honestly don't know what to put here", "Dirty stories about corn", "Wibble wobble", "Might as well put cornflakes in there",
+            "Corn bread as well"};
+
+    protected final String DB_URL = "";
+    protected final String DB_USR = "";
+    protected final String DB_PWD = "";
+
     protected Image icon;
     protected JTabbedPane tabbedPane;
     protected JPanel statusPanel;
@@ -25,8 +33,6 @@ public class Application extends JFrame {
     private OverviewPanel overviewPanel;
 
     private String user = "";
-    private final String[] titleMessages = new String[] {"Used condoms for sale",
-            "I honestly don't know what to put here", "Dirty stories about corn"};
 
     public Application() {
         super();
@@ -43,6 +49,7 @@ public class Application extends JFrame {
         overviewPanel = new OverviewPanel(this);
 
         tabbedPane.addTab("Login", loginPanel);
+        tabbedPane.addTab("Overview", overviewPanel);
 
         statusPanel = new JPanel();
         statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
@@ -50,7 +57,7 @@ public class Application extends JFrame {
         statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.LINE_AXIS));
 
         statusLabel = new JLabel("Not logged in.");
-        pointsLabel = new JLabel("Current Points: " + points);
+        pointsLabel = new JLabel("Points: " + points);
 
         statusPanel.add(statusLabel);
         statusPanel.add(Box.createHorizontalGlue());
@@ -99,11 +106,7 @@ public class Application extends JFrame {
 
     public void setPoints(int i) {
         this.points = i;
-        pointsLabel.setText("Current Points: " + points);
-    }
-
-    public int getPoints() {
-        return points;
+        pointsLabel.setText("Points: " + points);
     }
 
 }

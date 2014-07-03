@@ -3,6 +3,8 @@ package org.nathantehbeast.forbiddenclient.swing;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.security.MessageDigest;
 import java.sql.*;
 
@@ -14,10 +16,6 @@ import java.sql.*;
 
 public class LoginPanel extends JPanel {
 
-    protected final String DB_URL = "";
-    protected final String DB_USR = "";
-    protected final String DB_PWD = "";
-
     private final Application application;
     private final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
@@ -25,7 +23,10 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwordField;
     private JButton loginButton;
 
-    private String name, passhash, salt, igns;
+
+    private ActionListener loginActionListener, logoutActionListener;
+
+    private String passhash, salt, igns;
     private int memberId, groupId, points;
 
     public LoginPanel(Application application) {
@@ -49,7 +50,17 @@ public class LoginPanel extends JPanel {
 
         loginButton = new JButton("Login!");
         loginButton.setFont(loginButton.getFont().deriveFont(Font.BOLD));
-        loginButton.addActionListener(e -> processLogin());
+
+        loginActionListener = e1 -> {
+            processLogin();
+        };
+
+        logoutActionListener = e2 -> {
+            logout();
+        };
+
+        loginButton.addActionListener(loginActionListener);
+        passwordField.addActionListener(e -> processLogin());
 
         nested_username.add(username);
         nested_username.add(usernameField);
@@ -68,17 +79,8 @@ public class LoginPanel extends JPanel {
         add(nested0, BorderLayout.CENTER);
     }
 
-    public JTextField getUsernameField() {
-        return usernameField;
-    }
 
-    public JPasswordField getPasswordField() {
-        return passwordField;
-    }
 
-    public JButton getLoginButton() {
-        return loginButton;
-    }
 
     public void disableAll() {
         usernameField.setEnabled(false);
@@ -99,13 +101,13 @@ public class LoginPanel extends JPanel {
             application.setUser(igns);
             application.setStatus("Welcome " + application.getUser() + "!");
             application.setPoints(points);
-            application.getTabbedPane().addTab("Overview", application.getOverviewPanel());
             if (groupId == 4 || groupId == 6 || groupId == 8)  {
                 application.getTabbedPane().addTab("Management Tools", application.getManagementPanel());
-                JOptionPane.showMessageDialog(null, "Login successful. Adding management panel.", "Success", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(null, "Login successful.", "Success", JOptionPane.INFORMATION_MESSAGE);
             }
+            loginButton.setText("Logout!");
+            loginButton.setEnabled(true);
+            loginButton.removeActionListener(loginActionListener);
+            loginButton.addActionListener(logoutActionListener);
         } else {
             JOptionPane.showMessageDialog(null, "Invalid login. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
             enableAll();
@@ -117,13 +119,11 @@ public class LoginPanel extends JPanel {
         Statement statement;
         try {
             Class.forName("com.mysql.jdbc.Driver");
-
-            con = DriverManager.getConnection(DB_URL, DB_USR, DB_PWD);
-
+            con = DriverManager.getConnection(application.DB_URL, application.DB_USR, application.DB_PWD);
             statement = con.createStatement();
 
             PreparedStatement ps;
-            ps = con.prepareStatement("SELECT member_id, name, member_group_id, members_pass_hash, members_pass_salt FROM ipb_members WHERE name = ? OR email = ?");
+            ps = con.prepareStatement("SELECT member_id, member_group_id, members_pass_hash, members_pass_salt FROM ipb_members WHERE name = ? OR email = ?");
 
             ps.setString(1, user);
             ps.setString(2, user);
@@ -132,7 +132,6 @@ public class LoginPanel extends JPanel {
 
             while (rs.next()) {
                 memberId = rs.getInt("member_id");
-                name = rs.getString("name");
                 groupId = rs.getInt("member_group_id");
                 passhash = rs.getString("members_pass_hash");
                 salt = rs.getString("members_pass_salt");
@@ -150,14 +149,27 @@ public class LoginPanel extends JPanel {
         return salt != null && passhash != null && pwd != null && checkHash(salt, passhash, pwd);
     }
 
+    private void logout() {
+        enableAll();
+
+        for (Component c : application.getTabbedPane().getComponents()) {
+            if (c.equals(application.getManagementPanel()))
+                application.getTabbedPane().remove(c);
+        }
+
+        application.setStatus("Not logged in.");
+        application.setPoints(0);
+        loginButton.setText("Login!");
+        loginButton.removeActionListener(logoutActionListener);
+        loginButton.addActionListener(loginActionListener);
+    }
+
     private void fetchData() {
         Connection con;
         Statement statement;
         try {
             Class.forName("com.mysql.jdbc.Driver");
-
-            con = DriverManager.getConnection(DB_URL, DB_USR, DB_PWD);
-
+            con = DriverManager.getConnection(application.DB_URL, application.DB_USR, application.DB_PWD);
             statement = con.createStatement();
 
             PreparedStatement ps;
