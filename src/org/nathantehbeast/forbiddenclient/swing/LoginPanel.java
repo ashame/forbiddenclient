@@ -2,9 +2,8 @@ package org.nathantehbeast.forbiddenclient.swing;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.security.MessageDigest;
 import java.sql.*;
 
@@ -17,17 +16,14 @@ import java.sql.*;
 public class LoginPanel extends JPanel {
 
     private final Application application;
-    private final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
 
-
-    private ActionListener loginActionListener, logoutActionListener;
-
-    private String passhash, salt, igns;
+    private String passwordHash, salt, names;
     private int memberId, groupId, points;
+    private boolean loggedIn = false;
 
     public LoginPanel(Application application) {
         this.application = application;
@@ -51,15 +47,7 @@ public class LoginPanel extends JPanel {
         loginButton = new JButton("Login!");
         loginButton.setFont(loginButton.getFont().deriveFont(Font.BOLD));
 
-        loginActionListener = e1 -> {
-            processLogin();
-        };
-
-        logoutActionListener = e2 -> {
-            logout();
-        };
-
-        loginButton.addActionListener(loginActionListener);
+        loginButton.addActionListener(e -> processLogin());
         passwordField.addActionListener(e -> processLogin());
 
         nested_username.add(username);
@@ -79,9 +67,6 @@ public class LoginPanel extends JPanel {
         add(nested0, BorderLayout.CENTER);
     }
 
-
-
-
     public void disableAll() {
         usernameField.setEnabled(false);
         passwordField.setEnabled(false);
@@ -96,22 +81,36 @@ public class LoginPanel extends JPanel {
 
     private void processLogin() {
         disableAll();
-        if (login(usernameField.getText(), new String(passwordField.getPassword()))) {
-            fetchData();
-            application.setUser(igns);
-            application.setStatus("Welcome " + application.getUser() + "!");
-            application.setPoints(points);
-            if (groupId == 4 || groupId == 6 || groupId == 8)  {
-                application.getTabbedPane().addTab("Management Tools", application.getManagementPanel());
+        Thread t = new Thread() {
+            public void run() {
+                if (!loggedIn) {
+                    updateLoginComponents(login(usernameField.getText(), new String(passwordField.getPassword())));
+                } else {
+                    logout();
+                }
             }
-            loginButton.setText("Logout!");
-            loginButton.setEnabled(true);
-            loginButton.removeActionListener(loginActionListener);
-            loginButton.addActionListener(logoutActionListener);
-        } else {
-            JOptionPane.showMessageDialog(null, "Invalid login. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
-            enableAll();
-        }
+        };
+        t.start();
+    }
+
+    private void updateLoginComponents(boolean success) {
+        SwingUtilities.invokeLater(() -> {
+            if (success) {
+                fetchData();
+                application.setUser(names);
+                application.setStatus("Welcome " + application.getUser() + "!");
+                application.setPoints(points);
+                if (groupId == 4 || groupId == 6 || groupId == 8) {
+                    application.getTabbedPane().addTab("Management Tools", application.getManagementPanel());
+                }
+                loginButton.setText("Logout!");
+                loginButton.setEnabled(true);
+                loggedIn = true;
+            } else {
+                JOptionPane.showMessageDialog(null, "Invalid login. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+                enableAll();
+            }
+        });
     }
 
     private boolean login(String user, String pwd) {
@@ -133,7 +132,7 @@ public class LoginPanel extends JPanel {
             while (rs.next()) {
                 memberId = rs.getInt("member_id");
                 groupId = rs.getInt("member_group_id");
-                passhash = rs.getString("members_pass_hash");
+                passwordHash = rs.getString("members_pass_hash");
                 salt = rs.getString("members_pass_salt");
             }
 
@@ -144,24 +143,23 @@ public class LoginPanel extends JPanel {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
-        return salt != null && passhash != null && pwd != null && checkHash(salt, passhash, pwd);
+        return salt != null && passwordHash != null && pwd != null && checkHash(salt, passwordHash, pwd);
     }
 
     private void logout() {
-        enableAll();
+        SwingUtilities.invokeLater(() -> {
+            enableAll();
+            for (Component c : application.getTabbedPane().getComponents()) {
+                if (c.equals(application.getManagementPanel()))
+                    application.getTabbedPane().remove(c);
+            }
 
-        for (Component c : application.getTabbedPane().getComponents()) {
-            if (c.equals(application.getManagementPanel()))
-                application.getTabbedPane().remove(c);
-        }
-
-        application.setStatus("Not logged in.");
-        application.setPoints(0);
-        loginButton.setText("Login!");
-        loginButton.removeActionListener(logoutActionListener);
-        loginButton.addActionListener(loginActionListener);
+            application.setStatus("Not logged in.");
+            application.setPoints(0);
+            loginButton.setText("Login!");
+            loggedIn = false;
+        });
     }
 
     private void fetchData() {
@@ -180,7 +178,7 @@ public class LoginPanel extends JPanel {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                igns = rs.getString("field_11");
+                names = rs.getString("field_11");
                 points = rs.getInt("field_12");
             }
 
@@ -194,36 +192,22 @@ public class LoginPanel extends JPanel {
     }
 
     private boolean checkHash(String salt, String hash, String pwd) {
+        System.out.println("Checking hash. Running on event dispatch thread: " + SwingUtilities.isEventDispatchThread());
         try {
             MessageDigest messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.update(salt.getBytes("UTF-8"), 0, salt.length());
-            String saltHash = toString(messageDigest.digest()).replace(" ", "").toLowerCase();
+            String saltHash = DatatypeConverter.printHexBinary(messageDigest.digest()).toLowerCase();
 
             messageDigest.update(pwd.getBytes("UTF-8"), 0, pwd.length());
 
-            String mergedHash = saltHash + toString(messageDigest.digest()).replace(" ", "").toLowerCase();
+            String mergedHash = saltHash + DatatypeConverter.printHexBinary(messageDigest.digest()).toLowerCase();
             messageDigest.update(mergedHash.getBytes("UTF-8"), 0, mergedHash.length());
 
-            String finalHash = toString(messageDigest.digest()).replace(" ", "").toLowerCase();
+            String finalHash = DatatypeConverter.printHexBinary(messageDigest.digest()).toLowerCase();
             return finalHash.equals(hash);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
-    }
-
-    public String toString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte aByte : bytes) {
-            sb.append(toString(aByte));
-            sb.append(' ');
-        }
-        return sb.substring(0, sb.length() - 1);
-    }
-
-    private String toString(byte byteValue) {
-        int tmp = byteValue << 8;
-        char[] chars = new char[]{HEX[(tmp >> 12) & 0x0F], HEX[(tmp >> 8) & 0x0F]};
-        return String.valueOf(chars);
     }
 }

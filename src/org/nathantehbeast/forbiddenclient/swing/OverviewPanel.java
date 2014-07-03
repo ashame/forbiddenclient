@@ -44,8 +44,6 @@ public class OverviewPanel extends JPanel {
         rightPanel.add(rightBottomPannel);
 
         table1 = new JTable(){
-            private static final long serialVersionUID = 1L;
-
             public boolean isCellEditable(int row, int column) {
                 return false;
             };
@@ -73,7 +71,7 @@ public class OverviewPanel extends JPanel {
             con = DriverManager.getConnection(application.DB_URL, application.DB_USR, application.DB_PWD);
             stmt = con.createStatement();
 
-            String query = "SELECT ipb_pfields_content.field_11, ipb_pfields_content.field_12 FROM ipb_members, ipb_pfields_content WHERE ipb_members.member_group_id > 3 AND ipb_members.member_id = ipb_pfields_content.member_id";
+            String query = "SELECT ipb_pfields_content.field_11, ipb_pfields_content.field_12 FROM ipb_members, ipb_pfields_content WHERE ipb_members.member_group_id >= 3 AND ipb_members.member_id = ipb_pfields_content.member_id AND ipb_pfields_content.field_11 IS NOT NULL";
 
             ResultSet rs = stmt.executeQuery(query);
 

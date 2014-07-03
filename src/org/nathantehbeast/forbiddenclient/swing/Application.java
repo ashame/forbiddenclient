@@ -16,7 +16,8 @@ public class Application extends JFrame {
 
     protected final String[] titleMessages = new String[] {"Used condoms for sale", "Buttering the corn",
             "I honestly don't know what to put here", "Dirty stories about corn", "Wibble wobble", "Might as well put cornflakes in there",
-            "Corn bread as well"};
+            "Corn bread as well", "#RuwenBrokeAV2014", "One day, I shall finish my guide", "Cardboard boxes for sale", "Home of Drillar noob",
+            "Loli VR FPS", "Invite Ori to PvE things and he will GvG you"};
 
     protected final String DB_URL = "";
     protected final String DB_USR = "";
