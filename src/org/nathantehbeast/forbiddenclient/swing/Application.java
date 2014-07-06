@@ -5,6 +5,8 @@ import org.nathantehbeast.forbiddenclient.utils.Utilities;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Random;
 
 /**
@@ -24,7 +26,7 @@ public class Application extends JFrame {
     protected final String DB_USR = "";
     protected final String DB_PWD = "";
 
-    protected final String VERSION = "1.0.2a";
+    protected final String VERSION = "1.0.3a";
 
     private JTabbedPane tabbedPane;
     private JPanel statusPanel;
@@ -71,6 +73,28 @@ public class Application extends JFrame {
         statusPanel.add(statusLabel);
         statusPanel.add(Box.createHorizontalGlue());
         statusPanel.add(pointsLabel);
+
+        addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    overviewPanel.refreshData();
+                }
+                if (e.getKeyCode() == KeyEvent.VK_F4) {
+                    randomizeTitle();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
 
         setJMenuBar(appMenuBar);
 

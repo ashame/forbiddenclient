@@ -23,13 +23,13 @@ public class AppMenuBar extends JMenuBar {
         menu.setMnemonic(KeyEvent.VK_F);
         add(menu);
 
-        menuItem = new JMenuItem("Random Title");
+        menuItem = new JMenuItem("Random Title (F4)");
         menuItem.addActionListener(l -> {
             application.randomizeTitle();
         });
         menu.add(menuItem);
 
-        menuItem = new JMenuItem("Refresh Tables");
+        menuItem = new JMenuItem("Refresh Tables (F5)");
         menuItem.addActionListener(l -> {
             application.getOverviewPanel().refreshData();
         });
@@ -64,7 +64,7 @@ public class AppMenuBar extends JMenuBar {
         ep.setBackground(new Color(0, 0, 0, 0));
 
         menuItem.addActionListener(l -> {
-            JOptionPane.showMessageDialog(null, ep, "About", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(application, ep, "About", JOptionPane.INFORMATION_MESSAGE);
         });
 
         menu.add(menuItem);
