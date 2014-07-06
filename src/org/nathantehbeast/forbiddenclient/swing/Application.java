@@ -26,7 +26,7 @@ public class Application extends JFrame {
     protected final String DB_USR = "";
     protected final String DB_PWD = "";
 
-    protected final String VERSION = "1.0.3a";
+    protected final String VERSION = "1.0.4a";
 
     private JTabbedPane tabbedPane;
     private JPanel statusPanel;
@@ -143,6 +143,10 @@ public class Application extends JFrame {
     public void randomizeTitle() {
         int msg = new Random().nextInt(titleMessages.length);
         setTitle("Forbidden - " + titleMessages[msg]);
+    }
+
+    public void setAppTitle(String title) {
+        setTitle("Forbidden - " + title);
     }
 
 }
